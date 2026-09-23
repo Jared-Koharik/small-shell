@@ -1,76 +1,89 @@
+#include "input.h"
+#include "msg.h"
+
+#include <dirent.h>
+#include <stdarg.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdbool.h>
 #include <string.h>
-#include <assert.h>
-#include <stdarg.h>
-extern char **environ;
 
-#define MAX_INPUT 100
 #define MAX_ARGS 30
-
-#define ANSI_RESET "\033[0m"
-#define ANSI_RED_BOLD "\033[1;31m"
 
 #define DELIMITER " "
 
-static bool getInput(char *restrict buff, int buffSize);
-static void errorMsg(const char *restrict mess, ...);
-static void flushInput();
+#define COMMANDS_SIZE 4
+
+static bool quit = false;
+
+static char *commands[COMMANDS_SIZE] = {
+    "quit",
+    "show",
+    "list",
+    "help",
+};
+
+static void commandQuit(char *options, ...);
+static void commandShow(char *options, ...);
+static void commandList(char *options, ...);
+static void commandHelp(char *options, ...);
+
+typedef void (*CommandFunc)(char *options, ...);
+static CommandFunc commandFuncs[COMMANDS_SIZE] = {
+    commandQuit,
+    commandShow,
+    commandList,
+    commandHelp,
+};
 
 int main(int argc, char **argv) {
 
-    char buff[MAX_INPUT] = { 0 };
+    char buff[SHELL_MAX_INPUT] = { 0 };
 
-    while(!getInput(buff, MAX_INPUT));
+    while(!quit) {
 
-    char *token = strtok(buff, DELIMITER);
-    while(token != NULL) {
-        token = strtok(NULL, DELIMITER);
+        while(!getInput(buff, SHELL_MAX_INPUT));
+
+        char *command = strtok(buff, DELIMITER);
+
+        uint8_t i;
+        for(i = 0; i < COMMANDS_SIZE; i++) {
+            if(strcmp(command, commands[i]) == 0 ) {
+                commandFuncs[i](strchr(buff, '\0') + 1);
+                break;
+            }
+        }
+        if(i == COMMANDS_SIZE) {
+            errorMsg("Command is not recognized");
+        }
+
     }
 
     return EXIT_SUCCESS;
 
 }
 
-static bool getInput(char *restrict buff, int buffSize) {
-
-    printf("> ");
-
-    fgets(buff, buffSize, stdin);
-
-    char *pnewline = strchr(buff, '\n');
-    if( pnewline == NULL ) { 
-        errorMsg("Input is too long, the max input is: %d\n", MAX_INPUT);
-        flushInput(); 
-        return false;
-    } else {
-        *pnewline = '\0';
-    }
-
-    return true;
+static void commandQuit(char *options, ...) {
+    quit = true;
 }
-
-static void errorMsg(const char *restrict mess, ...) {
+static void commandShow(char *options, ...) {
 
     va_list ap;
-    char *array[MAX_ARGS + 1];
-    int argno = 0;
 
-    printf(ANSI_RED_BOLD "  ERROR" ANSI_RESET ": ");
+    va_start(ap, options);
 
-    va_start(ap, mess);
+    vprintf(options, ap);
 
-    vprintf(mess, ap);
+    printf("\n");
 
     va_end(ap);
 
 }
+static void commandList(char *options, ...) {
 
-static void flushInput() {
-    char c = '0';
-    while( c != '\n' && c != EOF) {
-        c = getc(stdin);
+}
+static void commandHelp(char *options, ...) {
+    for(int i = 0; i < COMMANDS_SIZE; i++) {
+        printf("  %s\n", commands[i]);
     }
 }
