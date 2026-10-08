@@ -1,61 +1,29 @@
 #include "input.h"
-#include "msg.h"
+#include "command.h"
 
 #include <dirent.h>
-#include <stdarg.h>
 #include <stdint.h>
-#include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
+#include <stdbool.h>
 
-#define MAX_ARGS 30
-
-#define DELIMITER " "
-
-#define COMMANDS_SIZE 4
-
-static bool quit = false;
-
-static char *commands[COMMANDS_SIZE] = {
-    "quit",
-    "show",
-    "list",
-    "help",
-};
-
-static void commandQuit(char *options, ...);
-static void commandShow(char *options, ...);
-static void commandList(char *options, ...);
-static void commandHelp(char *options, ...);
-
-typedef void (*CommandFunc)(char *options, ...);
-static CommandFunc commandFuncs[COMMANDS_SIZE] = {
-    commandQuit,
-    commandShow,
-    commandList,
-    commandHelp,
-};
+typedef struct {
+    CommandState *pcstate;
+} AppState;
 
 int main(int argc, char **argv) {
+    (void)argc;
+    (void)argv;
 
-    char buff[SHELL_MAX_INPUT] = { 0 };
+    CommandState cstate = { 0 };
+    AppState state = { .pcstate = &cstate };
 
-    while(!quit) {
+    char *inputBuffer;
 
-        while(!getInput(buff, SHELL_MAX_INPUT));
+    while(!state.pcstate->requestQuit) {
 
-        char *command = strtok(buff, DELIMITER);
+        do { inputBuffer = getInput(); } while (inputBuffer == NULL);
 
-        uint8_t i;
-        for(i = 0; i < COMMANDS_SIZE; i++) {
-            if(strcmp(command, commands[i]) == 0 ) {
-                commandFuncs[i](strchr(buff, '\0') + 1);
-                break;
-            }
-        }
-        if(i == COMMANDS_SIZE) {
-            errorMsg("Command is not recognized");
-        }
+        runCommand(state.pcstate, inputBuffer);
 
     }
 
@@ -63,27 +31,3 @@ int main(int argc, char **argv) {
 
 }
 
-static void commandQuit(char *options, ...) {
-    quit = true;
-}
-static void commandShow(char *options, ...) {
-
-    va_list ap;
-
-    va_start(ap, options);
-
-    vprintf(options, ap);
-
-    printf("\n");
-
-    va_end(ap);
-
-}
-static void commandList(char *options, ...) {
-
-}
-static void commandHelp(char *options, ...) {
-    for(int i = 0; i < COMMANDS_SIZE; i++) {
-        printf("  %s\n", commands[i]);
-    }
-}

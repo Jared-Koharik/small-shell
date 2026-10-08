@@ -1,18 +1,17 @@
+CF := -Wall -Wextra -pedantic
+OBJ := object/main.o object/input.o object/msg.o object/command.o
+
 .PHONY: all run clean
 
 all: build/main
 
-build/main: object/main.o object/input.o object/msg.o | object build
-	gcc object/main.o object/input.o object/msg.o -o build/main -Iinclude
+build/main: $(OBJ) | object build
+	gcc $(OBJ) -o build/main -Iinclude
 
-object/main.o: src/main.c | src object
-	gcc -c src/main.c -o object/main.o -Iinclude
+object/%.o: src/%.c | src object
+	gcc $(CF) -MMD -MP -c $< -o $@ -Iinclude
 
-object/input.o: src/input.c | src object
-	gcc -c src/input.c -o object/input.o -Iinclude
-
-object/msg.o: src/msg.c | src object
-	gcc -c src/msg.c -o object/msg.o -Iinclude
+-include $(OBJ:.o=.d)
 
 build:
 	mkdir -p build

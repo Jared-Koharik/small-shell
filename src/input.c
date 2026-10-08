@@ -4,26 +4,31 @@
 #include <stdio.h>
 #include <string.h>
 
+#define SHELL_MAX_INPUT 100
 
-bool getInput(char *restrict buff, int buffSize) {
+static char inputBuffer[SHELL_MAX_INPUT] = { 0 };
+
+static void flushInput(void);
+
+char *getInput(void) {
 
     printf("> ");
 
-    fgets(buff, buffSize, stdin);
+    fgets(inputBuffer, SHELL_MAX_INPUT, stdin);
 
-    char *pnewline = strchr(buff, '\n');
+    char *pnewline = strchr(inputBuffer, '\n');
     if( pnewline == NULL ) { 
         errorMsg("Input is too long, the max input is: %d", SHELL_MAX_INPUT);
         flushInput(); 
-        return false;
+        return NULL;
     } else {
         *pnewline = '\0';
     }
 
-    return true;
+    return inputBuffer;
 }
 
-void flushInput(void) {
+static void flushInput(void) {
     char c = '0';
     while( c != '\n' && c != EOF) {
         c = getc(stdin);

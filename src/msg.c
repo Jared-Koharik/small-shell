@@ -11,7 +11,7 @@ void errorMsg(const char *restrict mess, ...) {
 
     va_list ap;
 
-    printf(ANSI_RED_BOLD "  ERROR" ANSI_RESET ": ");
+    printf(ANSI_RED_BOLD "  - ERROR" ANSI_RESET ": ");
 
     va_start(ap, mess);
 
@@ -27,7 +27,7 @@ void logMsg(const char *restrict mess, ...) {
 
     va_list ap;
 
-    printf(ANSI_BOLD " LOG" ANSI_RESET ": ");
+    printf(ANSI_BOLD "  - LOG" ANSI_RESET ": ");
 
     va_start(ap, mess);
 

@@ -3,9 +3,6 @@
 
 #include <stdbool.h>
 
-#define SHELL_MAX_INPUT 100
-
-bool getInput(char *restrict buff, int buffSize);
-void flushInput(void);
+char *getInput(void);
 
 #endif
